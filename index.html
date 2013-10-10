@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en" ng-app="markdownEditor">
+<head>
+  <meta charset="UTF-8">
+  <title>Markdown Editor</title>
+
+  <style>
+    div {
+      height: 400px;
+      width: 50%;
+      padding: 5px;
+      box-sizing: border-box;
+
+
+      font-size: 16px;
+
+      float: left;
+    }
+
+    .editor {
+      font-family: monospace;
+      outline: 1px solid #ddd;
+    }
+
+    .preview {
+
+    }
+  </style>
+</head>
+<body>
+
+  <div class="editor" ng-model="content" contenteditable>
+  </div>
+
+  <div class="preview" ng-bind="content">
+
+  </div>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0-rc.2/angular.min.js"></script>
+
+  <script>
+    angular.module('markdownEditor', []).directive('contenteditable', function() {
+      return {
+        require: 'ngModel',
+        link: function(scope, element, _, ctrl) {
+          element.on('keyup', function() {
+            scope.$apply(function() {
+              ctrl.$setViewValue(element.text())
+            });
+
+            var content = element.text()
+
+            var range = document.createRange()
+            var textNode = element[0].childNodes[0]
+
+            var selection = window.getSelection()
+            var cursorRange = selection.getRangeAt(0)
+
+
+            if (textNode == null || textNode.nodeValue == null) {
+              return
+            }
+
+            var start = textNode.nodeValue.indexOf('**')
+            var end = textNode.nodeValue.lastIndexOf('**')
+
+            if (end == start) {
+              return
+            }
+
+            range.setStart(textNode, start)
+            range.setEnd(textNode, end + 2)
+
+            range.surroundContents(document.createElement('strong'))
+
+            selection.removeAllRanges()
+            selection.addRange(cursorRange)
+          })
+
+          ctrl.$render = function(value) {
+            element.html(value)
+          }
+
+          ctrl.$setViewValue(element.text())
+        }
+      };
+    });
+  </script>
+</body>
+</html>
