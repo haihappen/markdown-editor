@@ -48,14 +48,7 @@
               ctrl.$setViewValue(element.text())
             });
 
-            var content = element.text()
-
-            var range = document.createRange()
-            var textNode = element[0].childNodes[0]
-
-            var selection = window.getSelection()
-            var cursorRange = selection.getRangeAt(0)
-
+            var textNode = element[0].firstChild
 
             if (textNode == null || textNode.nodeValue == null) {
               return
@@ -68,10 +61,23 @@
               return
             }
 
+            // Wrap element inside the corresponding HTML Element
+            var range = document.createRange()
+
             range.setStart(textNode, start)
             range.setEnd(textNode, end + 2)
 
-            range.surroundContents(document.createElement('strong'))
+            surroundingElement = document.createElement('strong')
+            range.surroundContents(surroundingElement)
+
+            // Set cursor back
+            var selection = window.getSelection()
+            var cursorRange = document.createRange()
+
+            var emptyElement = document.createTextNode('\u200B')
+            element[0].appendChild(emptyElement)
+
+            cursorRange.setStartAfter(emptyElement)
 
             selection.removeAllRanges()
             selection.addRange(cursorRange)
@@ -83,8 +89,8 @@
 
           ctrl.$setViewValue(element.text())
         }
-      };
-    });
+      }
+    })
   </script>
 </body>
 </html>
