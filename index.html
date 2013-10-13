@@ -43,12 +43,44 @@
       return {
         require: 'ngModel',
         link: function(scope, element, _, ctrl) {
+          element.on('focus', function(e) {
+            var selection = window.getSelection()
+            var range = document.createRange()
+
+            console.log(element[0].childNodes)
+
+            var surroundingElement = null
+
+            for(var i = 0, n = element[0].childNodes.length; child = element[0].childNodes[i], i < n; i++) {
+              if(child.nodeType == 1) {
+                surroundingElement = child;
+              }
+            }
+
+
+            if(surroundingElement == null) {
+              surroundingElement = document.createElement('span')
+              surroundingElement.innerHTML = '\u200B'
+              element[0].appendChild(surroundingElement)
+            }
+
+            if(/firefox/i.test(navigator.userAgent)) {
+              range.setStart(surroundingElement, 0)
+            } else {
+              range.setStartAfter(surroundingElement)
+            }
+
+            selection.removeAllRanges()
+            selection.addRange(range)
+          })
+
+
           element.on('keyup', function() {
             scope.$apply(function() {
               ctrl.$setViewValue(element.text())
             });
 
-            var textNode = element[0].firstChild
+            var textNode = element[0].childNodes[1].firstChild
 
             if (textNode == null || textNode.nodeValue == null) {
               return
@@ -68,19 +100,25 @@
             range.setEnd(textNode, end + 2)
 
             surroundingElement = document.createElement('strong')
-            range.surroundContents(surroundingElement)
+            surroundingElement.appendChild(range.extractContents())
+            element[0].appendChild(surroundingElement)
 
             // Set cursor back
             var selection = window.getSelection()
-            var cursorRange = document.createRange()
+            range = document.createRange()
 
-            var emptyElement = document.createTextNode('\u200B')
-            element[0].appendChild(emptyElement)
+            surroundingElement = document.createElement('span')
+            surroundingElement.innerHTML = '\u200B'
+            element[0].appendChild(surroundingElement)
 
-            cursorRange.setStartAfter(emptyElement)
+            if(/firefox/i.test(navigator.userAgent)) {
+              range.setStart(surroundingElement, 0)
+            } else {
+              range.setStartAfter(surroundingElement)
+            }
 
             selection.removeAllRanges()
-            selection.addRange(cursorRange)
+            selection.addRange(range)
           })
 
           ctrl.$render = function(value) {
